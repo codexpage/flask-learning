@@ -1,13 +1,18 @@
 {% extends "bootstrap/base.html" %}
-{% block title %}{% endblock %}
+{% block title %}my test{% endblock %}
+
 {% block head %}
-{{super()}}
-<link rel="icon" type="image/png" href="{{url_for('static',filename='favicon-96x96.png', _external=True)}}">
+{{ super() }}
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 
 {% endblock %}
 
 {% block content %}
 <h1>Hello world</h1>
+<div class="container">
+	{% block page_content %}{% endblock %}
+</div>
 {% endblock %}
 
 {% block scripts %}
