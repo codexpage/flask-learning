@@ -2,7 +2,7 @@
 {% block title %}{% endblock %}
 {% block head %}
 {{super()}}
-<link rel="icon" type="image/png" sizes="96x96" href="{{url_for('static',filename='favicon-96x96.png', _external=True)}}">
+<link rel="icon" type="image/png" href="{{url_for('static',filename='favicon-96x96.png', _external=True)}}">
 
 {% endblock %}
 
