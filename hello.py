@@ -3,13 +3,14 @@ from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
 from flask_script import Manager, Shell
 from flask_moment import Moment 
-from flask_wtf import Form 
+from flask_wtf import FlaskForm 
 from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import Required
 from flask_sqlalchemy import SQLAlchemy
 import os
 from datetime import datetime
 from flask_migrate import Migrate, MigrateCommand
+from flask_mail import Mail,Message
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -21,11 +22,22 @@ app.config['SQLALCHEMY_DATABASE_URI']=\
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['MAIL_SERVER'] = 'smtp.tju.edu.cn'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+#使用邮件功能前需要export环境变量
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_ADMIN'] = os.environ.get('MAIL_ADMIN')
+
+
 bootstrap = Bootstrap(app)
 manager=Manager(app)
 moment=Moment(app)
 db=SQLAlchemy(app)
 migrate = Migrate(app,db)
+mail = Mail(app)
+
 
 manager.add_command('db',MigrateCommand) #加上db命令表示migrate
 
@@ -45,7 +57,8 @@ def hello():
 			session['known']=True
 		session['name']=form.name.data 
 		if old_name is not None and old_name != form.name.data:
-			flash('haha,changed name?')
+			flash('haha,changed name? mail sended')
+			send_mail(app.config['MAIL_ADMIN'],'new user','mail/new_user',user=user)
 		password = form.password.data
 		form.name.data = ''
 		form.password.data = ''
@@ -61,7 +74,7 @@ def page_not_found(e):
 def internal_server_error(e):
 	return render_template('500.html'),500
 
-class NameForm(Form):
+class NameForm(FlaskForm):
 	"""Form to input name"""
 	name = StringField('What is your name?', validators=[Required()])
 	password = PasswordField('the password?')
@@ -90,6 +103,14 @@ def make_shell_context():
 	return dict(app=app, db=db, User=User, Role=Role)
 
 manager.add_command("shell", Shell(make_context = make_shell_context))
+
+#kwargs是keywords可变参数
+def send_mail(to,subject,template,**kwargs):
+		msg=Message(subject,sender=app.config['MAIL_USERNAME'],recipients=[to])
+		msg.body = render_template(template + '.txt',**kwargs) #纯文本模板
+		msg.html = render_template(template + '.html',**kwargs) #富文本模板
+		# mail.send(msg)
+		print('mail sended to '+to)
 
 
 if __name__=="__main__":
