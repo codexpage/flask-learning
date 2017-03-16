@@ -17,6 +17,8 @@ app.config['SECRET_KEY'] = "hardpassword" #for wtf
 app.config['SQLALCHEMY_DATABASE_URI']=\
 	'sqlite:///'+os.path.join(basedir,'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 bootstrap = Bootstrap(app)
 manager=Manager(app)
 moment=Moment(app)
@@ -28,14 +30,21 @@ def hello():
 	form = NameForm()
 	if form.validate_on_submit(): 
 		old_name = session.get('name')
+		user =User.query.filter_by(username=form.name.data).first()
+		if user is None:
+			user = User(username=form.name.data)
+			db.session.add(user)
+			session['known']=False
+		else:
+			session['known']=True
+		session['name']=form.name.data 
 		if old_name is not None and old_name != form.name.data:
 			flash('haha,changed name?')
-		session['name'] = form.name.data
 		password = form.password.data
 		form.name.data = ''
 		form.password.data = ''
 		return redirect(url_for('hello'))
-	return render_template("base.html",current_time=datetime.utcnow(),form=form,name=session.get('name'),password=password)
+	return render_template("index.html",current_time=datetime.utcnow(),form=form,name=session.get('name'),password=password,known=session.get('known',False))
 
 
 @app.errorhandler(404)
@@ -52,7 +61,26 @@ class NameForm(Form):
 	password = PasswordField('the password?')
 	submit = SubmitField('Submit')
 		
+class Role(db.Model):
+	"""Role model"""
+	__tablename__='roles'
+	id = db.Column(db.Integer,primary_key=True)
+	name = db.Column(db.String(64),unique=True)
+	users = db.relationship('User',backref='role',lazy='dynamic')
 
+	def __repr__(self):
+		return '<Role %r>' % self.name
+
+class User(db.Model):
+	__tablename__ = 'users'
+	id = db.Column(db.Integer, primary_key=True)
+	username = db.Column(db.String(64), unique=True, index=True)
+	role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+
+	def __repr__(self):
+		return '<User %r>' % self.username
+
+		
 
 
 if __name__=="__main__":
