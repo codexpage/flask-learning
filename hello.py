@@ -1,3 +1,4 @@
+#-*-encoding:utf-8-*-
 from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
 from flask_script import Manager, Shell
@@ -8,6 +9,7 @@ from wtforms.validators import Required
 from flask_sqlalchemy import SQLAlchemy
 import os
 from datetime import datetime
+from flask_migrate import Migrate, MigrateCommand
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -23,6 +25,10 @@ bootstrap = Bootstrap(app)
 manager=Manager(app)
 moment=Moment(app)
 db=SQLAlchemy(app)
+migrate = Migrate(app,db)
+
+manager.add_command('db',MigrateCommand) #加上db命令表示migrate
+
 
 @app.route("/", methods=['GET','POST'])
 def hello():
