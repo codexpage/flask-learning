@@ -5,14 +5,22 @@ from flask_moment import Moment
 from flask_wtf import Form 
 from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import Required
-
+from flask_sqlalchemy import SQLAlchemy
+import os
 from datetime import datetime
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "hardpassword" #for wtf
+app.config['SQLALCHEMY_DATABASE_URI']=\
+	'sqlite:///'+os.path.join(basedir,'data.sqlite')
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 bootstrap = Bootstrap(app)
 manager=Manager(app)
 moment=Moment(app)
+db=SQLAlchemy(app)
 
 @app.route("/", methods=['GET','POST'])
 def hello():
