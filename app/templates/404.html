@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %} Page Not Found {% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+	<center>
+		
+		
+		<style type="text/css">
+		/*覆盖css*/
+		#notfound{
+			background-color: #ffffff;
+   			border: none;
+		}
+		</style>
+		<img src="{{url_for('static',filename='img/404.png')}}"  alt="pic here" class="img-responsive center-block">
+		<pre id="notfound">{% include "notfound.html" %}</pre>
+	</center>
+	
+</div>
+{% endblock %}
