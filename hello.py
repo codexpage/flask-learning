@@ -9,22 +9,22 @@ from wtforms.validators import Required
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "hardpassword"
+app.config['SECRET_KEY'] = "hardpassword" #for wtf
 bootstrap = Bootstrap(app)
 manager=Manager(app)
 moment=Moment(app)
 
 @app.route("/", methods=['GET','POST'])
 def hello():
-	name = None
 	password = None
 	form = NameForm()
-	if form.validate_on_submit():
-		name = form.name.data
+	if form.validate_on_submit(): 
+		session['name'] = form.name.data
 		password = form.password.data
 		form.name.data = ''
 		form.password.data = ''
-	return render_template("base.html",current_time=datetime.utcnow(),form=form,name=name,password=password)
+		return redirect(url_for('hello'))
+	return render_template("base.html",current_time=datetime.utcnow(),form=form,name=session.get('name'),password=password)
 
 
 @app.errorhandler(404)
