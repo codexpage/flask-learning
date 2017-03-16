@@ -20,7 +20,7 @@ def hello():
 	form = NameForm()
 	if form.validate_on_submit(): 
 		old_name = session.get('name')
-		if old_name is not None and old_name != form.name.data
+		if old_name is not None and old_name != form.name.data:
 			flash('haha,changed name?')
 		session['name'] = form.name.data
 		password = form.password.data
