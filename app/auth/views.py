@@ -5,7 +5,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
 
 from ..models import User
-from .forms import LoginForm, RegistrationForm
+from .forms import LoginForm, RegistrationForm, ChangePasswordForm
 
 from .. import db
 from ..email import send_mail
@@ -80,3 +80,16 @@ def resend_confirmation():
 		'auth/email/confirm', user=current_user, token=token)
 	flash('A new confirmation email has been send to you by email.')
 	return redirect(url_for('main.index'))
+
+@auth.route('/change-password',methods=['GET','POST'])
+def change_password():
+	form = ChangePasswordForm()
+	if form.validate_on_submit():
+		if current_user.verify_password(form.old_password.data):
+			current_user.password = form.password.data
+			db.session.add(current_user)
+			flash('Your Password has been updated')
+			return redirect(url_for('main.index'))
+		else:
+			flash('Invalid Password')
+	return render_template('auth/change_password.html',form=form)
