@@ -8,5 +8,5 @@ def send_mail(to,subject,template,**kwargs):
 		msg=Message(subject,sender=current_app.config['MAIL_USERNAME'],recipients=[to])
 		msg.body = render_template(template + '.txt',**kwargs) #纯文本模板
 		msg.html = render_template(template + '.html',**kwargs) #富文本模板
-		# mail.send(msg)
+		mail.send(msg)  #发送！
 		print('mail sended to '+str(to))
