@@ -11,6 +11,8 @@
 	{%else%}
 	<p>Happy to meet you again!</p>
 	{% endif %}
+
+	
 	<h1>Hello,
 		{% if current_user.is_authenticated %}
 			{{ current_user.username }}
