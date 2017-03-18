@@ -1,6 +1,6 @@
 #-*-encoding:utf-8-*-
 #视图函数
-from flask import render_template, session, redirect, url_for,current_app, flash
+from flask import render_template, session, redirect, url_for,current_app, flash, abort
 from datetime import datetime
 from . import main #from main(包名) import main(蓝本对象) main.route要用到
 from .forms import NameForm
@@ -31,3 +31,10 @@ def index():
 		form.password.data = ''
 		return redirect(url_for('.index'))#注意这里路由写法是main.hello的缩写，这里的index是index()路由函数的名字，蓝本名字相当于命名空间
 	return render_template("index.html",current_time=datetime.utcnow(),form=form,name=session.get('name'),password=password,known=session.get('known',False))
+
+
+@main.route('/user/<username>')
+def user(username):
+	user = User.query.filter_by(username=username).first_or_404()
+	return render_template('user.html',user=user)
+	

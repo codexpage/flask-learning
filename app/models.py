@@ -1,10 +1,11 @@
 #-*-encoding:utf-8-*-
 from . import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 from . import login_manager
 from flask import current_app
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from datetime import datetime
 
 class Permission:
 	FOLLOW = 0x01
@@ -56,8 +57,21 @@ class User(UserMixin, db.Model):
 	username = db.Column(db.String(64), unique=True, index=True)
 	password_hash = db.Column(db.String(128))
 	role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-
 	confirmed = db.Column(db.Boolean, default=False)
+	name = db.Column(db.String(64))
+	location = db.Column(db.String(64))
+	about_me = db.Column(db.Text())
+	member_since = db.Column(db.DateTime(), default=datetime.utcnow)
+	last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
+
+	def __init__(self, **kwargs):  #在构造函数里赋予权限
+		super(User, self).__init__(**kwargs)
+		if self.role is None:
+			if self.email == current_app.config['MAIL_ADMIN']: #MAIL_ADMIN即为管理员账号
+				self.role = Role.query.filter_by(permissions = 0xff).first()
+			if self.role is None:
+				self.role = Role.query.filter_by(default=True).first()
+
 
 	@property
 	def password(self):
@@ -70,9 +84,9 @@ class User(UserMixin, db.Model):
 	def verify_password(self,password):
 		return check_password_hash(self.password_hash, password)
 
-	@login_manager.user_loader
+	@login_manager.user_loader #这个是登录模块的东西
 	def load_user(user_id):
-		return User.query.get(int(user_id))
+		return User.query.get(int(user_id)) #返回当前user对象，作为current_user
 
 	def generate_confirmation_token(self, expiration=3600):
 		s = Serializer(current_app.config['SECRET_KEY'],expiration)
@@ -129,5 +143,29 @@ class User(UserMixin, db.Model):
 		db.session.add(self)
 		return True	
 
+	def can(self, permissions):
+		return self.role is not None and \
+			(self.role.permissions & permissions) == permissions #权限判断巧妙
+
+	def is_administrator(self):
+		return self.can(Permission.ADMINISTER)
+
+	def ping(self):
+		self.last_seen = datetime.utcnow()
+		db.session.add(self)
+
+
 	def __repr__(self):
 		return '<User %r>' % self.username
+
+
+class AnonymousUser(AnonymousUserMixin):
+	def can(self,permissions):
+		return False
+	def is_administrator(self,permissions):
+		return False
+
+
+
+login_manager.anonymous_user = AnonymousUser 
+#把AnonymousUser类设为没登录的 current_user 这样没登录也可以判断权限

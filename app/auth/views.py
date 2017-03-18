@@ -12,12 +12,13 @@ from ..email import send_mail
 
 @auth.before_app_request #在全局的所有request之前，判断如果1.用户登录2.且未确认3.且请求的端点不在auth蓝本中,则强制跳转到unconfirm界面
 def before_request():
-	if current_user.is_authenticated \
-			and not current_user.confirmed \
+	if current_user.is_authenticated:
+		current_user.ping()
+		if not current_user.confirmed \
 			and request.endpoint \
 			and request.endpoint[:5]!= 'auth.'\
 			and request.endpoint != 'static':
-		return redirect(url_for('auth.unconfirmed'))
+			return redirect(url_for('auth.unconfirmed'))
 
 @auth.route('/login',methods=['GET','POST'])
 def login():
