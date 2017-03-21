@@ -225,15 +225,15 @@ class Post(db.Model):
 			db.session.add(p)
 			db.session.commit()
 	@staticmethod
-	def on_change_body(target, value, oldvalue, initiator):
+	def on_changed_body(target, value, oldvalue, initiator):
 		allowed_tags= ['a','abbr','acronym','b','blockquote',
 			'code','em','i','li','ol','pre','strong','ul',
 			'h1','h2','h3','p']
 		target.body_html= bleach.linkify(bleach.clean(
-			markdown(value,outpur_format='html'),tags=allowed_tags,strip=True))
+			markdown(value,output_format='html'),tags=allowed_tags,strip=True))
 
 
-db.event.listen(Post.body, 'set', Post.on_change_body)
+db.event.listen(Post.body, 'set', Post.on_changed_body)
 
 login_manager.anonymous_user = AnonymousUser 
 #把AnonymousUser类设为没登录的 current_user 这样没登录也可以判断权限
