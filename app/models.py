@@ -7,6 +7,8 @@ from flask import current_app, request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 import hashlib
+from markdown import markdown
+import bleach
 
 
 class Permission:
@@ -204,6 +206,7 @@ class Post(db.Model):
 	__tablename__='posts'
 	id = db.Column(db.Integer, primary_key=True)
 	body = db.Column(db.Text)
+	body_html = db.Column(db.Text)
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 	author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
@@ -221,7 +224,16 @@ class Post(db.Model):
 					author=u)
 			db.session.add(p)
 			db.session.commit()
+	@staticmethod
+	def on_change_body(target, value, oldvalue, initiator):
+		allowed_tags= ['a','abbr','acronym','b','blockquote',
+			'code','em','i','li','ol','pre','strong','ul',
+			'h1','h2','h3','p']
+		target.body_html= bleach.linkify(bleach.clean(
+			markdown(value,outpur_format='html'),tags=allowed_tags,strip=True))
 
+
+db.event.listen(Post.body, 'set', Post.on_change_body)
 
 login_manager.anonymous_user = AnonymousUser 
 #把AnonymousUser类设为没登录的 current_user 这样没登录也可以判断权限
