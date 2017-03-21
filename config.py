@@ -13,6 +13,7 @@ class Config:
 	MAIL_SERVER = 'smtp.tju.edu.cn'
 	MAIL_PORT = 587
 	MAIL_USE_TLS = True
+	POSTS_PER_PAGE = 20
 
 	@staticmethod
 	def init_app(app):#程序配置初始化
