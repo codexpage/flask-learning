@@ -14,6 +14,7 @@ class Config:
 	MAIL_PORT = 587
 	MAIL_USE_TLS = True
 	POSTS_PER_PAGE = 20
+	FOLLOWERS_PER_PAGE = 50
 
 	@staticmethod
 	def init_app(app):#程序配置初始化

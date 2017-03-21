@@ -57,7 +57,7 @@ class Follow(db.Model):
 	follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
 	followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
 	timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-	
+
 
 class User(UserMixin, db.Model):
 	__tablename__ = 'users'
@@ -79,7 +79,7 @@ class User(UserMixin, db.Model):
 			lazy='dynamic',cascade='all, delete-orphan')
 
 	followers = db.relationship('Follow', foreign_keys=[Follow.followed_id],
-			backref=db.backref('follower',lazy='joined'),
+			backref=db.backref('followed',lazy='joined'),
 			lazy='dynamic',cascade='all, delete-orphan')
 
 	@staticmethod
@@ -207,17 +207,20 @@ class User(UserMixin, db.Model):
 
 	def follow(self, user):
 		if not self.is_following(user):
-			f = Follow(followed=user)
-			self.followed.append(f)
+			f = Follow(follower=self,followed=user)
+			db.session.add(f)
+			# f = Follow(followed=user)
+			# self.followed.append(f)
 
 	def unfollow(self, user):
 		f = self.followed.filter_by(followed_id=user.id).first()
-		self.followed.remove(f)
+		db.session.delete(f)
+		# self.followed.remove(f)
 
-	def is_following(user):
+	def is_following(self,user):
 		return self.followed.filter_by(followed_id=user.id).first() is not None
 
-	def is_followedby(user):
+	def is_followedby(self,user):
 		return self.followers.filter_by(follower_id=user.id).first() is not None
 
 
